@@ -23,10 +23,10 @@ Now try again!
 
 def getblastrecords(InputFile): 
 	"""This function takes an input phagename.fasta file, searches against a database
-	(mycobacteriophages263 currently), and returns the blast records
+	(mycobacteriophages471 in this version), and returns the blast records
 	"""
 	OutputFile = InputFile[:-6] + ".xml"
-	blastn_cline = NcbiblastnCommandline(query=InputFile, db="mycobacteriophages263", evalue=10, outfmt=5, out=OutputFile)
+	blastn_cline = NcbiblastnCommandline(query=InputFile, db="mycobacteriophages471", evalue=10, outfmt=5, out=OutputFile)
 	stdout, stderr = blastn_cline()
 
 	result_handle = open(OutputFile)
@@ -61,7 +61,7 @@ else:
 	tophitlength = top_alignment_data.length
 	percent_hit_to_query = ((float(alignmenttotal) / int(querylength)) *100)
 	
-	print "Top hit is to %s" % tophitname
+	print "Top hit is to Mycobacteriophage %s" % tophitname
 	print "Total length of alignments to top hit: %s bp" % alignmenttotal
 	print "Percentage match to query: %.2f %%" % percent_hit_to_query
 	print "Percentage match to top hit: %.2f %%" % ((float(alignmenttotal) / int(tophitlength)) *100)
@@ -70,7 +70,7 @@ else:
 	lines = InFile.readlines()
 	for line in lines:
 		line = line.strip('\n').upper()
-		SearchStr="%s,(\w+),(\w+)" % tophitname[20:-17].upper()
+		SearchStr="%s,(\w+),(\w+)" % tophitname.upper()
 		Result = re.search(SearchStr, line)
 		if Result is not None:
 			cluster = Result.group(1)
@@ -80,16 +80,6 @@ else:
 			cluster = None
 			subcluster = None
 
-	if percent_hit_to_query > 50:
-		print "Your phage belongs to Cluster %s" % cluster
-		
-	if (subcluster != "NONE") and (percent_hit_to_query > 70):
-		print "Your phage matches the top hit more than 70%% of the query genome length and \
-likely belongs to Subcluster %s" % subcluster
-	else:
-		print "Subcluster designation is uncertain, and your phage represent a new subcluster"
-	#	print: "Your phage matches %s and likely belongs to subcluster %s" % (tophitname, subcluster)
-	
 	if int(top_alignment_data.hsps[0].positives) == int(tophitlength):
 		print "Your genome is 100% identical to top hit and is probably the same genome"
 		if  len(blast_record.alignments) >1:
@@ -101,5 +91,14 @@ likely belongs to Subcluster %s" % subcluster
 			second_percent_hit_to_query = ((float(alignmenttotal) / int(secondquerylength)) *100)
 			print "The second top hit is %s: " % secondhitname
 			print "Percent span match to second hit is %.2f %%:" % second_percent_hit_to_query
+	else:
+		if percent_hit_to_query > 50:
+			print "Your phage belongs to Cluster %s" % cluster
+	
+		if (subcluster != "NONE") and (percent_hit_to_query > 70):
+			print "Your phage matches the top hit more than 70%% of the query genome length and \
+likely belongs to Subcluster %s" % subcluster
+		else:
+			print "Subcluster designation is uncertain, and your phage may represent a new subcluster"
 	
 	

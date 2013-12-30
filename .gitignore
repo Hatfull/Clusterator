@@ -2,6 +2,9 @@
 *.fa
 *.xml
 *.txt
-mycobacteriophages263*.*
+mycobacteriophages*.*
 *.csv
 *.docx
+test*.*
+*.n*
+*.asnb
