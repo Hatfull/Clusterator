@@ -5,6 +5,6 @@
 mycobacteriophages*.*
 *.csv
 *.docx
-test*.*
+test.*
 *.n*
 *.asnb

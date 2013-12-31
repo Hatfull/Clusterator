@@ -61,7 +61,7 @@ else:
 	tophitlength = top_alignment_data.length
 	percent_hit_to_query = ((float(alignmenttotal) / int(querylength)) *100)
 	
-	print "Top hit is to Mycobacteriophage %s" % tophitname
+	print "Top hit is to Mycobacteriophage %s" % tophitname[21:]
 	print "Total length of alignments to top hit: %s bp" % alignmenttotal
 	print "Percentage match to query: %.2f %%" % percent_hit_to_query
 	print "Percentage match to top hit: %.2f %%" % ((float(alignmenttotal) / int(tophitlength)) *100)
@@ -89,7 +89,7 @@ else:
 			secondhitname = blast_record.alignments[1].hit_def
 			secondhitlength = second_hit.length
 			second_percent_hit_to_query = ((float(alignmenttotal) / int(secondquerylength)) *100)
-			print "The second top hit is %s: " % secondhitname
+			print "The second top hit is %s: " % secondhitname[21:]
 			print "Percent span match to second hit is %.2f %%:" % second_percent_hit_to_query
 	else:
 		if percent_hit_to_query > 50:
