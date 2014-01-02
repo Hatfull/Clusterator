@@ -68,7 +68,34 @@ if __name__ == '__main__':
 	InputFile = sys.argv[1]
 	blastdata = getblastrecords(InputFile)
 	blast_record = next(blastdata)
+	queryname = blast_record.query
 
+	alignment_length_dictionary = {}
+	for each_alignment in blast_record.alignments[:5]:
+		alignment_total = sumhsps(each_alignment)		
+		alignment_name = each_alignment.hit_def[21:]
+		querylength = blast_record.query_length
+		cluster_assignment = clusterlookup(alignment_name)
+		percent_hit_to_query = ((float(alignment_total) / int(querylength)) *100)
+		#print "%s (%s, %s) %s bp %2.f %% of query" % (alignment_name, cluster_assignment[0], cluster_assignment[1], alignment_total, percent_hit_to_query)
+		
+		alignment_length_dictionary[alignment_name] = percent_hit_to_query
+	print alignment_length_dictionary
+		
+		#print "%s, %s, %.2f %%" % (queryname, alignment name, percent_hit_to_query)	
+		
+"""		
+	for Eachphage in InFileNames:
+		Codonvalues = parsecodons(Eachphage)
+		header = header + ',' + Eachphage[:-10]
+	
+		for Codon, Value in Codonvalues.items():
+			Allcodons[Codon].append(Value)
+"""	
+		
+		
+		
+"""
 	if len(blast_record.alignments) == 0:
 		print "Congratulations! Your phage is a new singleton Mycobacteriophage"
 	else:
@@ -109,7 +136,7 @@ if __name__ == '__main__':
 				secondhitcluster = clusterlookup(secondhitname)
 				print "The second top hit is %s (Cluster: %s, Subcluster: %s)" % (secondhitname[21:], secondhitcluster[0], secondhitcluster[1])
 				print "Percent span match to second hit is %.2f %%:" % second_percent_hit_to_query
-			
+"""			
 
 
 

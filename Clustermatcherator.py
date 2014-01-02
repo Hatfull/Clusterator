@@ -104,46 +104,59 @@ if __name__ == "__main__":
 			continue 		
 
 		tophitname = blast_record.alignments[0].hit_def[21:]
-		blast_hit_name = blast_record.alignments[0].hit_def[21:]
+		top_blast_hit_name = blast_record.alignments[0].hit_def[21:]
 		Query_cluster = clusterlookup(tophitname)
 		Query_cluster_des = Query_cluster[0]
 		Query_subcluster_des = Query_cluster[1]
 
-		top_hit_cluster = clusterlookup(blast_hit_name)
+		top_hit_cluster = clusterlookup(top_blast_hit_name)
 		top_hit_cluster_des = top_hit_cluster[0]
 		top_hit_subcluster_des = top_hit_cluster[1]
 
+		second_blast_hit_name = blast_record.alignments[1].hit_def[21:]
+		second_alignment_data = blast_record.alignments[1]
+		second_alignment_total = sumhsps(second_alignment_data)
+		querylength = blast_record.query_length
+		second_hit_name = blast_record.alignments[1].hit_def[21:]
+		second_blast_hit_name = second_hit_name[21:]
+		secondhitlength = second_alignment_data.length
+		percent_second_hit_to_query = ((float(second_alignment_total) / int(querylength)) *100)	
+		second_hit_cluster = clusterlookup(second_hit_name)
+		
 		if len(blast_record.alignments) == 1:
 		
 			cluster_des = top_hit_cluster_des
 			subcluster_des = top_hit_subcluster_des
-			match = blast_hit_name
+			match = tophitname
 			percent = "100"
 			
-		else:
-			blast_hit_name = blast_record.alignments[1].hit_def[21:]
-			second_alignment_data = blast_record.alignments[1]
-			second_alignment_total = sumhsps(second_alignment_data)
-			querylength = blast_record.query_length
-			second_hit_name = blast_record.alignments[1].hit_def[21:]
-			second_blast_hit_name = second_hit_name[21:]
-			secondhitlength = second_alignment_data.length
-			percent_second_hit_to_query = ((float(second_alignment_total) / int(querylength)) *100)	
-			second_hit_cluster = clusterlookup(second_hit_name)
+	#		print "The query phage (%s) is the same as %s which is in Cluster %s, Subcluster %s" \
+	#			% (queryname[20:], top_blast_hit_name[21:], cluster_des, subcluster_des)	
 		
-			if percent_second_hit_to_query < 70:
-				cluster_des = top_hit_cluster[0]
-				subcluster_des = top_hit_cluster[1]
-				match = blast_hit_name
-				percent = "%.2f" % percent_second_hit_to_query
+		elif percent_second_hit_to_query < 50:
+			cluster_des = top_hit_cluster[0]
+			subcluster_des = top_hit_cluster[1]
+			match = second_blast_hit_name
+			percent = "100"
 
-			else:
-				cluster_des = second_hit_cluster[0]
-				subcluster_des = second_hit_cluster[1]
-				match = second_hit_name
-				percent = "%.2f" % percent_second_hit_to_query
+#			print "Testing: %s second top hit is to %s but matches less than 70% %.2f" % (queryname[20:], second_hit_name[21:], percent_second_hit_to_query)
+
+#			print "%s second top hit is to %s, but matches less than 70% (spanmatch is only %.2f).\
+#Cluster designation is thus the same as the query (and the top hit; %s), i.e. Cluster: %s, Subcluster: %s" \
+#			% (queryname[20:], second_hit_name[21:], percent_second_hit_to_query, queryname[20:], Query_cluster_des, Query_subcluster_des)
+
+		else:
+			cluster_des = second_hit_cluster[0]
+			subcluster_des = second_hit_cluster[1]
+			match = second_blast_hit_name
+			percent = str(percent_second_hit_to_query)
 	
-		print ",".join([queryname[20:], match, percent, cluster_des, subcluster_des])
+#			print "The second top hit to %s is %s (Cluster: %s, Subcluster: %s) and matches \
+#more than 70%. %s is thus assigned to %s and %s" \
+#				% (queryname[20:], second_hit_name[21:], second_hit_cluster[0], second_hit_cluster[1], 
+#				queryname[20:], second_hit_cluster[0], second_hit_cluster[1])
+	
+	print ",".join([queryname[20:], match, percent, cluster_des, subcluster_des])
 
 
 
