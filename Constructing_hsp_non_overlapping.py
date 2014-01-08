@@ -24,7 +24,7 @@ def getblastrecords(InputFile):
 	(mycobacteriophages471 in this version), and returns the blast records
 	"""
 	OutputFile = InputFile[:-6] + ".xml"
-	blastn_cline = NcbiblastnCommandline(query=InputFile, db="mycobacteriophages471", evalue=10, outfmt=5, out=OutputFile, culling_limit=2, gapopen=2, gapextend=2, reward=1, penalty=-1)
+	blastn_cline = NcbiblastnCommandline(query=InputFile, db="mycobacteriophages471", evalue=10, outfmt=5) #, out=OutputFile, culling_limit=2, gapopen=2, gapextend=2, reward=1, penalty=-1)
 	stdout, stderr = blastn_cline()
 
 	result_handle = open(OutputFile)
@@ -36,8 +36,8 @@ def sumhsps(alignment_data):
 	hits (hsps), and sums them.
 	"""
 	alignment_list = []
-	initial_hsp_start = blast_record.alignments[0].hsps[0].query_start # this is OK
-	initial_hsp_end = blast_record.alignments[0].hsps[0].query_end # this is OK
+	initial_hsp_start = alignment_data.hsps[0].query_start
+	initial_hsp_end = alignment_data.hsps[0].query_end
 	for hsp in alignment_data.hsps:
 		hsp_start = hsp.query_start
 		hsp_end = hsp.query_end		
