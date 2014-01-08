@@ -24,7 +24,7 @@ def getblastrecords(InputFile):
 	(mycobacteriophages471 in this version), and returns the blast records
 	"""
 	OutputFile = InputFile[:-6] + ".xml"
-	blastn_cline = NcbiblastnCommandline(query=InputFile, db="mycobacteriophages471", evalue=10, outfmt=5, out=OutputFile)#, gapopen=5, gapextend=2, reward=2, penalty=-3)
+	blastn_cline = NcbiblastnCommandline(query=InputFile, db="mycobacteriophages471", evalue=10, outfmt=5, out=OutputFile, culling_limit=2, gapopen=2, gapextend=2, reward=1, penalty=-1)
 	stdout, stderr = blastn_cline()
 
 	result_handle = open(OutputFile)
@@ -59,6 +59,18 @@ def clusterlookup(blasthit):
 	clusterassignment = cluster,subcluster
 	return clusterassignment
 
+def get_alignment_dict(blast_record):
+	"""This function looks up blast records and places alignment span lengths into a dictionary"""
+	alignment_length_dictionary = {}
+	for each_alignment in blast_record.alignments:
+		alignment_total = sumhsps(each_alignment)		
+		alignment_name = each_alignment.hit_def[21:]
+		querylength = blast_record.query_length
+		percent_hit_to_query = ((float(alignment_total) / int(querylength)) *100)		
+		alignment_length_dictionary[alignment_name] = percent_hit_to_query
+	sorted_alignments = sorted(alignment_length_dictionary.items(), reverse=True, key=lambda x:x[1])
+	return sorted_alignments
+
 if __name__ == '__main__':
 
 	if len(sys.argv)<2:
@@ -72,6 +84,67 @@ if __name__ == '__main__':
 	if len(blast_record.alignments) == 0:
 		print "Congratulations! Your phage is a new singleton Mycobacteriophage"
 	else:
+		alignments = get_alignment_dict(blast_record)	
+		alignment_name, percent_hit_to_query = alignments[0]		
+		top_hit_name = alignment_name
+		top_hit_percent = "%.2f" % percent_hit_to_query
+		top_cluster_assignment = clusterlookup(alignment_name)
+		
+		#alignment_name, percent_hit_to_query = alignments[1]
+		#second_hit_name = alignment_name
+		#second_hit_percent = "%.2f" % percent_hit_to_query
+		#second_cluster_assignment = clusterlookup(alignment_name)
+
+		top_alignment_data = blast_record.alignments[0]
+		top_hit_length = top_alignment_data.length
+		
+		if int(top_alignment_data.hsps[0].positives) == int(top_hit_length):
+			print "Your genome is 100%% identical to %s and is probably the same genome" % top_hit_name
+
+
+		#print "Top hit is to %s (%s, %s) percent span length hit: %s" % (top_hit_name, top_cluster_assignment[0], top_cluster_assignment[1], top_hit_percent)
+		#print "Second top is to %s (%s, %s) percent span length hit: %s" % (second_hit_name, second_cluster_assignment[0], second_cluster_assignment[1], second_hit_percent)
+		
+		
+		#if percent_hit_to_query >= 100:
+		#	print "Your query genome is 100%% identical to %s and is probably the same or a very similar genome" % top_hit_name 
+		
+		else:		
+			print "Top hit is to %s (%s, %s) percent span length hit: %s" % (top_hit_name, top_cluster_assignment[0], top_cluster_assignment[1], top_hit_percent)
+
+			if percent_hit_to_query > 50:
+				print "Your phage has a span length match greater than 50%% to %s and likely also belongs to Cluster %s" % (top_hit_name, top_cluster_assignment[0])
+				if percent_hit_to_query > 66 and (top_cluster_assignment[1] != "NONE"):
+					print "And with a span length match greater than 65%% is also in Subcluster %s" % top_cluster_assignment[1]
+				
+				if percent_hit_to_query <= 65 and (top_cluster_assignment[1] != "NONE"):
+					print "But your phage matches %s with a span length match less than 65%% and is a candidate for a new Sublcuster" % top_hit_name
+			else:
+				print "Your phage does not have a span length greater than 50% and is a candidate for a new Singleton"
+				if percent_hit_to_query > 40:
+					print "But your phage matches %s with a span length greater than 40%% and thus may be in the same cluster (%s)" % (top_hit_name, top_cluster_assignment[0])
+				
+			 
+			
+		
+"""		
+		for alignment_name, percent_hit_to_query in alignments[:5]:
+			percent = "%.2f" % percent_hit_to_query
+			cluster_assignment = clusterlookup(alignment_name)
+			
+			name_cluster_subcluster_percent = ",".join([alignment_name, cluster_assignment[0], cluster_assignment[1], percent])
+			print name_cluster_subcluster_percent
+		#print alignments[0]
+			
+			#print name_cluster_subcluster_percent
+			#print "Top five hits (by span length match: %s)" % top_five_hits[:5]
+			#print "Top five hits are to: (phagename, cluster, subcluster, percent span match" ",".join([alignment_name, cluster_assignment[0], cluster_assignment[1], percent])
+			#print ",".join([alignment_name, cluster_assignment[0], cluster_assignment[1], percent])
+			
+			 
+	
+
+
 		top_alignment_data = blast_record.alignments[0]
 		alignmenttotal = sumhsps(top_alignment_data)
 		querylength = blast_record.query_length
@@ -109,7 +182,7 @@ if __name__ == '__main__':
 				secondhitcluster = clusterlookup(secondhitname)
 				print "The second top hit is %s (Cluster: %s, Subcluster: %s)" % (secondhitname[21:], secondhitcluster[0], secondhitcluster[1])
 				print "Percent span match to second hit is %.2f %%:" % second_percent_hit_to_query
-			
+"""		
 
 
 

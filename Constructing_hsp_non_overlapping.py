@@ -41,17 +41,17 @@ def sumhsps(alignment_data):
 	for hsp in alignment_data.hsps:
 		hsp_start = hsp.query_start
 		hsp_end = hsp.query_end		
-		if hsp_start >= initial_hsp_start and hsp_end <= initial_hsp_end:
+		if int(hsp_start) >= int(initial_hsp_start) and int(hsp_end <= initial_hsp_end):
 			continue
-		if hsp_end <= initial_hsp_start:
+		if int(hsp_end) <= int(initial_hsp_start):
 			align_length = int(hsp_end) - int(hsp_start)
 			alignment_list.append(align_length)
 			continue
-		if hsp_start >= initial_hsp_end:
+		if int(hsp_start) >= int(initial_hsp_end):
 			align_length = int(hsp_end) - int(hsp_start)
 			alignment_list.append(align_length)
 			continue
-		if hsp_start < initial_hsp_start:
+		if int(hsp_start) < int(initial_hsp_start):
 			initial_hsp_start = hsp_start
 		else:
 			initial_hsp_end = hsp_end
@@ -114,14 +114,6 @@ if __name__ == '__main__':
 		if int(top_alignment_data.hsps[0].positives) == int(top_hit_length):
 			print "Your genome is 100%% identical to %s and is probably the same genome" % top_hit_name
 
-
-		#print "Top hit is to %s (%s, %s) percent span length hit: %s" % (top_hit_name, top_cluster_assignment[0], top_cluster_assignment[1], top_hit_percent)
-		#print "Second top is to %s (%s, %s) percent span length hit: %s" % (second_hit_name, second_cluster_assignment[0], second_cluster_assignment[1], second_hit_percent)
-		
-		
-		#if percent_hit_to_query >= 100:
-		#	print "Your query genome is 100%% identical to %s and is probably the same or a very similar genome" % top_hit_name 
-		
 		else:		
 			print "Top hit is to %s (%s, %s) percent span length hit: %s" % (top_hit_name, top_cluster_assignment[0], top_cluster_assignment[1], top_hit_percent)
 
