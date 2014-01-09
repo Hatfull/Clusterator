@@ -93,7 +93,6 @@ if __name__ == '__main__':
 	sorted_list_of_alignments = get_alignment_list(blast_record)
 	
 	for alignment_name, percent_hit_to_query in sorted_list_of_alignments:
-		break
 		percent = "%.2f" % percent_hit_to_query
 		
 		#print ",".join([alignment_name, percent])

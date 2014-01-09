@@ -36,24 +36,20 @@ def sumhsps(alignment_data):
 	hits (hsps), and sums them.
 	"""
 	alignment_list = []
+	alignment_data.hsps.sort(key = lambda hsp: hsp.query_start)
 	initial_hsp_start = alignment_data.hsps[0].query_start
-	initial_hsp_end = alignment_data.hsps[0].query_end
+	initial_hsp_end = alignment_data.hsps[0].query_end	
 	for hsp in alignment_data.hsps:
 		hsp_start = hsp.query_start
 		hsp_end = hsp.query_end		
-		if int(hsp_start) >= int(initial_hsp_start) and int(hsp_end) <= (initial_hsp_end):
+		if hsp_end <= initial_hsp_end:
 			continue
-		if int(hsp_end) <= int(initial_hsp_start):
-			align_length = int(hsp_end) - int(hsp_start)
-			alignment_list.append(align_length)
-			continue
-		if int(hsp_start) >= int(initial_hsp_end):
-			align_length = int(hsp_end) - int(hsp_start)
-			alignment_list.append(align_length)
-			continue
-		if int(hsp_start) < int(initial_hsp_start):
-			initial_hsp_start = hsp_start
+		if int(hsp_start) <= int(initial_hsp_end):
+			initial_hsp_end = hsp_end
 		else:
+			align_length = int(initial_hsp_end) - int(initial_hsp_start)
+			alignment_list.append(align_length)
+			initial_hsp_start = hsp_start
 			initial_hsp_end = hsp_end
 	align_length = int(initial_hsp_end) - int(initial_hsp_start) # this is OK
 	alignment_list.append(align_length)
