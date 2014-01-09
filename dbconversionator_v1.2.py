@@ -9,8 +9,8 @@ InFile = open(InputFile)
 Lines = InFile.readlines()
 
 for Line in Lines:
-	Random_number1 = random.randint(10000,99999)
-	Random_number2 = random.randint(10000,99999)
+	Random_number1 = random.randint(100000,999999)
+	Random_number2 = random.randint(100000,999999)
 	MyRe = r"\>(\w+)"
 	MySub = r'>gi|' + str(Random_number1) + r'|emb|A' + str(Random_number2) + r'|\1'
 #	MyRe = r"(\>gi)\|12345\|(emb)\|A12345\|( \w.+)"

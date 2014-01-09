@@ -12,12 +12,10 @@ from Bio.Blast.Applications import NcbiblastnCommandline
 from Bio.Blast import NCBIXML
 
 Usage = """
-Clustercheckerator.py - version 1.2
+Mother_of_all_matcherators.py - version 1.2
 Created by Graham Hatfull and Fred Hatfull
-Helps to determination Cluster designation of your newly sequenced mycobacteriophage.
-Enter the name of a fasta file: i.e. 
-Usage: Clustercheckerator.py Yourfileofphagefastafiles.fasta
-Results will be return list of cluster designations
+Generates as matrix of the span lengths of all phages in a database 
+Usage: Mother_of_all_matcherators.py Yourfileofphagefastafiles.fasta > outputfilename.csv
 Now try again!
 """
 
@@ -63,13 +61,38 @@ def sumhsps(alignment_data):
 	"""This function takes an alignment record, identifies the lengths of all 
 	hits (hsps), and sums them.
 	"""
-	alignmentList = []
+	alignment_list = []
+	alignment_data.hsps.sort(key = lambda hsp: hsp.query_start)
+	initial_hsp_start = alignment_data.hsps[0].query_start
+	initial_hsp_end = alignment_data.hsps[0].query_end	
 	for hsp in alignment_data.hsps:
-		align_length = hsp.align_length
-		alignmentList.append(align_length)
-	return sum(alignmentList)
+		hsp_start = hsp.query_start
+		hsp_end = hsp.query_end		
+		if hsp_end <= initial_hsp_end:
+			continue
+		if int(hsp_start) <= int(initial_hsp_end):
+			initial_hsp_end = hsp_end
+		else:
+			align_length = int(initial_hsp_end) - int(initial_hsp_start)
+			alignment_list.append(align_length)
+			initial_hsp_start = hsp_start
+			initial_hsp_end = hsp_end
+	align_length = int(initial_hsp_end) - int(initial_hsp_start) # this is OK
+	alignment_list.append(align_length)
+	return sum(alignment_list)
+
+#def sumhsps(alignment_data):
+#	"""This function takes an alignment record, identifies the lengths of all 
+#	hits (hsps), and sums them.
+#	"""
+#	alignmentList = []
+#	for hsp in alignment_data.hsps:
+#		align_length = hsp.align_length
+#		alignmentList.append(align_length)
+#	return sum(alignmentList)
 
 def clusterlookup(blasthit):
+	"""This function takes a genome and looks up its cluster assignment"""
 	InFile = open('clustertable.csv', 'r')
 	lines = InFile.readlines()
 	cluster = None
@@ -87,6 +110,7 @@ def clusterlookup(blasthit):
 	return clusterassignment
 
 def get_alignment_dict(blast_record):
+	"""This function looks up blast records and places alignment span lengths into a dictionary"""
 	alignment_length_dictionary = {}
 	for each_alignment in blast_record.alignments:
 		alignment_total = sumhsps(each_alignment)		
@@ -98,7 +122,6 @@ def get_alignment_dict(blast_record):
 	
 #	sorted_dictionary = sorted(alignment_length_dictionary.items(), reverse=True, key=lambda x:x[1])
 	
-
 if __name__ == "__main__":
 
 	if len(sys.argv)<2:

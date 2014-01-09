@@ -12,17 +12,15 @@ from Bio.Blast.Applications import NcbiblastnCommandline
 from Bio.Blast import NCBIXML
 
 Usage = """
-Clustercheckerator.py - version 1.2
+Mother_of_all_matcherators.py - version 1.2
 Created by Graham Hatfull and Fred Hatfull
-Helps to determination Cluster designation of your newly sequenced mycobacteriophage.
-Enter the name of a fasta file: i.e. 
-Usage: Clustercheckerator.py Yourfileofphagefastafiles.fasta
-Results will be return list of cluster designations
+Generates as matrix of the span lengths of all phages in a database 
+Usage: Mother_of_all_matcherators.py Yourfileofphagefastafiles.fasta > outputfilename.csv
 Now try again!
 """
 
 DEFAULT_BLAST_PARAMS = {
-	"db": "mycobacteriophages471",
+	"db": "mycobacteriophages599",
 	"evalue": 10,
 	"outfmt": 5,
 	"num_threads": 1
@@ -63,14 +61,39 @@ def sumhsps(alignment_data):
 	"""This function takes an alignment record, identifies the lengths of all 
 	hits (hsps), and sums them.
 	"""
-	alignmentList = []
+	alignment_list = []
+	alignment_data.hsps.sort(key = lambda hsp: hsp.query_start)
+	initial_hsp_start = alignment_data.hsps[0].query_start
+	initial_hsp_end = alignment_data.hsps[0].query_end	
 	for hsp in alignment_data.hsps:
-		align_length = hsp.align_length
-		alignmentList.append(align_length)
-	return sum(alignmentList)
+		hsp_start = hsp.query_start
+		hsp_end = hsp.query_end		
+		if hsp_end <= initial_hsp_end:
+			continue
+		if int(hsp_start) <= int(initial_hsp_end):
+			initial_hsp_end = hsp_end
+		else:
+			align_length = int(initial_hsp_end) - int(initial_hsp_start)
+			alignment_list.append(align_length)
+			initial_hsp_start = hsp_start
+			initial_hsp_end = hsp_end
+	align_length = int(initial_hsp_end) - int(initial_hsp_start) # this is OK
+	alignment_list.append(align_length)
+	return sum(alignment_list)
+
+#def sumhsps(alignment_data):
+#	"""This function takes an alignment record, identifies the lengths of all 
+#	hits (hsps), and sums them.
+#	"""
+#	alignmentList = []
+#	for hsp in alignment_data.hsps:
+#		align_length = hsp.align_length
+#		alignmentList.append(align_length)
+#	return sum(alignmentList)
 
 def clusterlookup(blasthit):
-	InFile = open('clustertable.csv', 'r')
+	"""This function takes a genome and looks up its cluster assignment"""
+	InFile = open('clustertable599.csv', 'r')
 	lines = InFile.readlines()
 	cluster = None
 	subcluster = None
@@ -86,6 +109,19 @@ def clusterlookup(blasthit):
 	clusterassignment = cluster,subcluster
 	return clusterassignment
 
+def get_alignment_dict(blast_record):
+	"""This function looks up blast records and places alignment span lengths into a dictionary"""
+	alignment_length_dictionary = {}
+	for each_alignment in blast_record.alignments:
+		alignment_total = sumhsps(each_alignment)		
+		alignment_name = each_alignment.hit_def[23:]
+		querylength = blast_record.query_length
+		percent_hit_to_query = ((float(alignment_total) / int(querylength)) *100)		
+		alignment_length_dictionary[alignment_name] = percent_hit_to_query
+	return alignment_length_dictionary
+	
+#	sorted_dictionary = sorted(alignment_length_dictionary.items(), reverse=True, key=lambda x:x[1])
+	
 if __name__ == "__main__":
 
 	if len(sys.argv)<2:
@@ -94,15 +130,47 @@ if __name__ == "__main__":
 
 	InputFile = sys.argv[1]
 
+	alignment_matrix = {}
+
 	for seq_record in SeqIO.parse(InputFile, "fasta"):
 		blast_record = blast_records_fasta(seq_record)
-		queryname = blast_record.query
+		queryname = blast_record.query[22:]
+			
+		alignments = get_alignment_dict(blast_record)
+		alignment_matrix[queryname] = alignments
 	
-		if len(blast_record.alignments) == 0:
-			#This was included because the blast output has funky alignments with multiple
-			#iterations of the same sequence, but with no blast hits recorded.
-			continue 		
+	sorted_genomes = sorted(alignment_matrix.keys(), key=clusterlookup)
+	header = "," + ",".join(sorted_genomes)
+	print header
+	for genome in sorted_genomes:
+		row = []
+		row.append(genome)
+		for alignment in sorted_genomes:
+			value = alignment_matrix[genome].get(alignment, 0)
+			row.append("%.2f" % value)
+		print ",".join(row)		
 
+
+
+
+
+
+#		for alignment_name, percent_hit_to_query in sorted_list_of_alignments:
+#			percent = "%.2f" % percent_hit_to_query
+		
+		
+		
+		
+		
+		
+		
+		
+			
+		#	print ",".join([alignment_name, percent])
+
+
+
+"""
 		tophitname = blast_record.alignments[0].hit_def[21:]
 		blast_hit_name = blast_record.alignments[0].hit_def[21:]
 		Query_cluster = clusterlookup(tophitname)
@@ -117,12 +185,9 @@ if __name__ == "__main__":
 		
 			cluster_des = top_hit_cluster_des
 			subcluster_des = top_hit_subcluster_des
-			match = tophitname
+			match = blast_hit_name
 			percent = "100"
 			
-	#		print "The query phage (%s) is the same as %s which is in Cluster %s, Subcluster %s" \
-	#			% (queryname[20:], blast_hit_name[21:], cluster_des, subcluster_des)	
-
 		else:
 			blast_hit_name = blast_record.alignments[1].hit_def[21:]
 			second_alignment_data = blast_record.alignments[1]
@@ -134,31 +199,20 @@ if __name__ == "__main__":
 			percent_second_hit_to_query = ((float(second_alignment_total) / int(querylength)) *100)	
 			second_hit_cluster = clusterlookup(second_hit_name)
 		
-			if percent_second_hit_to_query < 50:
+			if percent_second_hit_to_query < 70:
 				cluster_des = top_hit_cluster[0]
 				subcluster_des = top_hit_cluster[1]
-				match = second_blast_hit_name
-				percent = "100"
-
-	#			print "Testing: %s second top hit is to %s but matches less than 70% %.2f" % (queryname[20:], second_hit_name[21:], percent_second_hit_to_query)
-
-	#			print "%s second top hit is to %s, but matches less than 70% (spanmatch is only %.2f).\
-	#Cluster designation is thus the same as the query (and the top hit; %s), i.e. Cluster: %s, Subcluster: %s" \
-	#			% (queryname[20:], second_hit_name[21:], percent_second_hit_to_query, queryname[20:], Query_cluster_des, Query_subcluster_des)
+				match = blast_hit_name
+				percent = "%.2f" % percent_second_hit_to_query
 
 			else:
 				cluster_des = second_hit_cluster[0]
 				subcluster_des = second_hit_cluster[1]
-				match = second_blast_hit_name
-				percent = str(percent_second_hit_to_query)
-		
-	#			print "The second top hit to %s is %s (Cluster: %s, Subcluster: %s) and matches \
-	#more than 70%. %s is thus assigned to %s and %s" \
-	#				% (queryname[20:], second_hit_name[21:], second_hit_cluster[0], second_hit_cluster[1], 
-	#				queryname[20:], second_hit_cluster[0], second_hit_cluster[1])
-		
+				match = second_hit_name
+				percent = "%.2f" % percent_second_hit_to_query
+	
 		print ",".join([queryname[20:], match, percent, cluster_des, subcluster_des])
-
+"""
 
 
 
