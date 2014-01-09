@@ -38,6 +38,7 @@ def sumhsps(alignment_data):
 	alignment_list = []
 	initial_hsp_start = alignment_data.hsps[0].query_start
 	initial_hsp_end = alignment_data.hsps[0].query_end
+	alignment_data.hsps.sort(key = lambda hsp: hsp.query_start)
 	for hsp in alignment_data.hsps:
 		hsp_start = hsp.query_start
 		hsp_end = hsp.query_end		
