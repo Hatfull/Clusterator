@@ -95,8 +95,8 @@ if __name__ == '__main__':
 	for alignment_name, percent_hit_to_query in sorted_list_of_alignments:
 		percent = "%.2f" % percent_hit_to_query
 		
-		#print ",".join([alignment_name, percent])
-		#print "%s %.2f" % (alignment_name, percent_hit_to_query)
+		print ",".join([alignment_name, percent])
+		print "%s %.2f" % (alignment_name, percent_hit_to_query)
 		
 			
 	#print "%s %.2f" % (name, value)

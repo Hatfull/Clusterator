@@ -3,6 +3,7 @@
 import re
 import sys
 import subprocess
+import time
 
 from Bio.Seq import Seq
 from Bio import SeqIO
@@ -21,9 +22,13 @@ Now try again!
 
 DEFAULT_BLAST_PARAMS = {
 	"db": "mycobacteriophages599",
+	"reward": 3, 
+	"penalty": -2,
+	"gapopen": 5, 
+	"gapextend": 5, 
 	"evalue": 10,
 	"outfmt": 5,
-	"num_threads": 1
+	"num_threads": 4,
 }
 
 def blast_records_fasta(record):
@@ -107,6 +112,7 @@ def clusterlookup(blasthit):
 			InFile.close()
 			break
 	clusterassignment = cluster,subcluster
+	#InFile.close()
 	return clusterassignment
 
 def get_alignment_dict(blast_record):
@@ -123,6 +129,8 @@ def get_alignment_dict(blast_record):
 #	sorted_dictionary = sorted(alignment_length_dictionary.items(), reverse=True, key=lambda x:x[1])
 	
 if __name__ == "__main__":
+
+	StartTime = time.time()
 
 	if len(sys.argv)<2:
 		print Usage
@@ -150,6 +158,7 @@ if __name__ == "__main__":
 			row.append("%.2f" % value)
 		print ",".join(row)		
 
+	print "Elapsed time: %.5f secs" % (time.time() - StartTime)
 
 
 
